@@ -74,8 +74,8 @@ designed for humans, without needing a display or mouse.
      ```python
      from cli_anything.<software>.utils.repl_skin import ReplSkin
 
-     skin = ReplSkin("<software>", version="1.0.0")
-     skin.print_banner()          # Branded startup box
+     skin = ReplSkin("<software>", version="1.0.0", skill_path="skills/<software>_SKILL.md")
+     skin.print_banner()          # Branded startup box (includes skill path for agents)
      pt_session = skin.create_prompt_session()  # prompt_toolkit with history + styling
      line = skin.get_input(pt_session, project_name="my_project", modified=True)
      skin.help(commands_dict)     # Formatted help listing
@@ -88,6 +88,8 @@ designed for humans, without needing a display or mouse.
      skin.progress(3, 10, "...")  # Progress bar
      skin.print_goodbye()         # Styled exit message
      ```
+   - **Important**: Include `skill_path` parameter to display the SKILL.md location in the
+     banner. This allows AI agents to discover where to read the skill documentation.
    - Make REPL the default behavior: use `invoke_without_command=True` on the main
      Click group, and invoke the `repl` command when no subcommand is given:
      ```python
@@ -303,6 +305,23 @@ skill definition.
 - Document `--json` flag usage for machine-readable output
 - List all command groups with brief descriptions
 - Provide realistic examples that demonstrate common workflows
+
+**Display Skill Path in CLI Banner:**
+
+After generating SKILL.md, update the CLI's REPL initialization to display the skill
+path in the startup banner. This helps AI agents discover where to read the skill
+documentation when using the CLI:
+
+```python
+# In the REPL initialization (e.g., shotcut_cli.py)
+from cli_anything.<software>.utils.repl_skin import ReplSkin
+
+skin = ReplSkin("<software>", version="1.0.0", skill_path="skills/<software>_SKILL.md")
+skin.print_banner()  # Now displays: ◇ Skill: skills/<software>_SKILL.md
+```
+
+This enables agents to know exactly where to find the skill definition when they
+encounter the CLI.
 
 ## Critical Lessons Learned
 

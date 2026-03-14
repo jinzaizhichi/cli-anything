@@ -77,7 +77,7 @@ def extract_cli_metadata(harness_path: str) -> SkillMetadata:
             f"cli_anything directory not found in {harness_path}. "
             "Ensure the harness structure includes cli_anything/<software>/"
         )
-    software_dirs = [d for d in cli_anything_dir.iterdir()]
+    software_dirs = [d for d in cli_anything_dir.iterdir()
                      if d.is_dir() and (d / "__init__.py").exists()]
 
     if not software_dirs:
