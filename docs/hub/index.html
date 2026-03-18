@@ -269,6 +269,32 @@
 
     .card-links a:hover { text-decoration: underline; color: var(--accent-hover); }
 
+    .card-contributor {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .card-contributor a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .card-contributor a:hover { text-decoration: underline; color: var(--accent-hover); }
+
+    .card-contributor .community-badge {
+      font-size: 0.68rem;
+      color: #d2a8ff;
+      background: rgba(210, 168, 255, 0.15);
+      padding: 0.1rem 0.4rem;
+      border-radius: 10px;
+      margin-left: 0.25rem;
+    }
+
     .category-tag {
       font-size: 0.72rem;
       color: var(--text-muted);
@@ -306,7 +332,7 @@
 </head>
 <body>
   <div class="header">
-    <h1>CLI-<span>Anything</span> Hub</h1>
+    <h1><span>CLI-</span><span style="color: #86868b;">Anything</span> <span>Hub</span></h1>
     <p class="tagline"><strong>Any software. Any codebase. Any Web API.</strong> Generate an agent-native CLI and let AI agents operate it &mdash; install with a single pip command.</p>
     <div class="header-links">
       <a class="header-btn" href="https://github.com/HKUDS/CLI-Anything" target="_blank">
@@ -440,6 +466,13 @@
         const titleHtml = c.homepage
           ? `<a href="${esc(c.homepage)}" target="_blank">${esc(c.display_name)}${EXTERNAL_LINK_SVG}</a>`
           : esc(c.display_name);
+        const isTeam = c.contributor === 'CLI-Anything-Team';
+        const contributorHtml = c.contributor
+          ? `<div class="card-contributor">
+              <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" style="opacity:0.5"><path d="M10.561 8.073a6.005 6.005 0 0 1 3.432 5.142.75.75 0 1 1-1.498.07 4.5 4.5 0 0 0-8.99 0 .75.75 0 0 1-1.498-.07 6.004 6.004 0 0 1 3.431-5.142 3.999 3.999 0 1 1 5.123 0ZM10.5 5a2.5 2.5 0 1 0-5 0 2.5 2.5 0 0 0 5 0Z"/></svg>
+              <a href="${esc(c.contributor_url)}" target="_blank">${esc(c.contributor)}</a>${isTeam ? '' : '<span class="community-badge">Community</span>'}
+            </div>`
+          : '';
 
         return `
           <div class="card">
@@ -451,6 +484,7 @@
               <span class="card-version">v${esc(c.version)}</span>
             </div>
             <div class="card-desc">${esc(c.description)}</div>
+            ${contributorHtml}
             ${requiresHtml}
             <div class="card-install">
               <code>${esc(c.install_cmd)}</code>

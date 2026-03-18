@@ -15,7 +15,23 @@
       "install_cmd": "pip install git+https://github.com/HKUDS/CLI-Anything.git#subdirectory=anygen/agent-harness",
       "entry_point": "cli-anything-anygen",
       "skill_md": "anygen/agent-harness/cli_anything/anygen/skills/SKILL.md",
-      "category": "generation"
+      "category": "generation",
+      "contributor": "koltyu-anygen",
+      "contributor_url": "https://github.com/koltyu-anygen"
+    },
+    {
+      "name": "adguardhome",
+      "display_name": "AdGuardHome",
+      "version": "1.0.0",
+      "description": "DNS ad-blocking and network infrastructure management via AdGuardHome REST API",
+      "requires": "AdGuardHome instance running",
+      "homepage": "https://adguard.com/adguard-home/overview.html",
+      "install_cmd": "pip install git+https://github.com/HKUDS/CLI-Anything.git#subdirectory=adguardhome/agent-harness",
+      "entry_point": "cli-anything-adguardhome",
+      "skill_md": null,
+      "category": "network",
+      "contributor": "pyxl-dev",
+      "contributor_url": "https://github.com/pyxl-dev"
     },
     {
       "name": "audacity",
@@ -27,7 +43,9 @@
       "install_cmd": "pip install git+https://github.com/HKUDS/CLI-Anything.git#subdirectory=audacity/agent-harness",
       "entry_point": "cli-anything-audacity",
       "skill_md": "audacity/agent-harness/cli_anything/audacity/skills/SKILL.md",
-      "category": "audio"
+      "category": "audio",
+      "contributor": "CLI-Anything-Team",
+      "contributor_url": "https://github.com/HKUDS/CLI-Anything"
     },
     {
       "name": "blender",
@@ -39,7 +57,9 @@
       "install_cmd": "pip install git+https://github.com/HKUDS/CLI-Anything.git#subdirectory=blender/agent-harness",
       "entry_point": "cli-anything-blender",
       "skill_md": "blender/agent-harness/cli_anything/blender/skills/SKILL.md",
-      "category": "3d"
+      "category": "3d",
+      "contributor": "CLI-Anything-Team",
+      "contributor_url": "https://github.com/HKUDS/CLI-Anything"
     },
     {
       "name": "comfyui",
@@ -51,7 +71,9 @@
       "install_cmd": "pip install git+https://github.com/HKUDS/CLI-Anything.git#subdirectory=comfyui/agent-harness",
       "entry_point": "cli-anything-comfyui",
       "skill_md": null,
-      "category": "ai"
+      "category": "ai",
+      "contributor": "Bortlesboat",
+      "contributor_url": "https://github.com/Bortlesboat"
     },
     {
       "name": "drawio",
@@ -63,7 +85,9 @@
       "install_cmd": "pip install git+https://github.com/HKUDS/CLI-Anything.git#subdirectory=drawio/agent-harness",
       "entry_point": "cli-anything-drawio",
       "skill_md": "drawio/agent-harness/cli_anything/drawio/skills/SKILL.md",
-      "category": "diagrams"
+      "category": "diagrams",
+      "contributor": "zhangxilong-43",
+      "contributor_url": "https://github.com/zhangxilong-43"
     },
     {
       "name": "gimp",
@@ -75,7 +99,9 @@
       "install_cmd": "pip install git+https://github.com/HKUDS/CLI-Anything.git#subdirectory=gimp/agent-harness",
       "entry_point": "cli-anything-gimp",
       "skill_md": "gimp/agent-harness/cli_anything/gimp/skills/SKILL.md",
-      "category": "image"
+      "category": "image",
+      "contributor": "CLI-Anything-Team",
+      "contributor_url": "https://github.com/HKUDS/CLI-Anything"
     },
     {
       "name": "inkscape",
@@ -87,7 +113,9 @@
       "install_cmd": "pip install git+https://github.com/HKUDS/CLI-Anything.git#subdirectory=inkscape/agent-harness",
       "entry_point": "cli-anything-inkscape",
       "skill_md": "inkscape/agent-harness/cli_anything/inkscape/skills/SKILL.md",
-      "category": "image"
+      "category": "image",
+      "contributor": "CLI-Anything-Team",
+      "contributor_url": "https://github.com/HKUDS/CLI-Anything"
     },
     {
       "name": "kdenlive",
@@ -99,7 +127,9 @@
       "install_cmd": "pip install git+https://github.com/HKUDS/CLI-Anything.git#subdirectory=kdenlive/agent-harness",
       "entry_point": "cli-anything-kdenlive",
       "skill_md": "kdenlive/agent-harness/cli_anything/kdenlive/skills/SKILL.md",
-      "category": "video"
+      "category": "video",
+      "contributor": "CLI-Anything-Team",
+      "contributor_url": "https://github.com/HKUDS/CLI-Anything"
     },
     {
       "name": "libreoffice",
@@ -111,7 +141,23 @@
       "install_cmd": "pip install git+https://github.com/HKUDS/CLI-Anything.git#subdirectory=libreoffice/agent-harness",
       "entry_point": "cli-anything-libreoffice",
       "skill_md": "libreoffice/agent-harness/cli_anything/libreoffice/skills/SKILL.md",
-      "category": "office"
+      "category": "office",
+      "contributor": "CLI-Anything-Team",
+      "contributor_url": "https://github.com/HKUDS/CLI-Anything"
+    },
+    {
+      "name": "mubu",
+      "display_name": "Mubu",
+      "version": "0.1.1",
+      "description": "Knowledge management and outlining via local Mubu desktop data",
+      "requires": "Mubu desktop app",
+      "homepage": "https://mubu.com",
+      "install_cmd": "pip install git+https://github.com/HKUDS/CLI-Anything.git#subdirectory=mubu/agent-harness",
+      "entry_point": "cli-anything-mubu",
+      "skill_md": "mubu/agent-harness/cli_anything/mubu/skills/SKILL.md",
+      "category": "office",
+      "contributor": "cnfjlhj",
+      "contributor_url": "https://github.com/cnfjlhj"
     },
     {
       "name": "mermaid",
@@ -123,7 +169,9 @@
       "install_cmd": "pip install git+https://github.com/HKUDS/CLI-Anything.git#subdirectory=mermaid/agent-harness",
       "entry_point": "cli-anything-mermaid",
       "skill_md": null,
-      "category": "diagrams"
+      "category": "diagrams",
+      "contributor": "getmored-create",
+      "contributor_url": "https://github.com/getmored-create"
     },
     {
       "name": "notebooklm",
@@ -135,7 +183,9 @@
       "install_cmd": "pip install git+https://github.com/HKUDS/CLI-Anything.git#subdirectory=notebooklm/agent-harness",
       "entry_point": "cli-anything-notebooklm",
       "skill_md": "notebooklm/agent-harness/cli_anything/notebooklm/skills/SKILL.md",
-      "category": "ai"
+      "category": "ai",
+      "contributor": "Haimbeau1o",
+      "contributor_url": "https://github.com/Haimbeau1o"
     },
     {
       "name": "ollama",
@@ -159,7 +209,9 @@
       "install_cmd": "pip install git+https://github.com/HKUDS/CLI-Anything.git#subdirectory=obs-studio/agent-harness",
       "entry_point": "cli-anything-obs-studio",
       "skill_md": "obs-studio/agent-harness/cli_anything/obs_studio/skills/SKILL.md",
-      "category": "streaming"
+      "category": "streaming",
+      "contributor": "CLI-Anything-Team",
+      "contributor_url": "https://github.com/HKUDS/CLI-Anything"
     },
     {
       "name": "shotcut",
@@ -171,7 +223,9 @@
       "install_cmd": "pip install git+https://github.com/HKUDS/CLI-Anything.git#subdirectory=shotcut/agent-harness",
       "entry_point": "cli-anything-shotcut",
       "skill_md": "shotcut/agent-harness/cli_anything/shotcut/skills/SKILL.md",
-      "category": "video"
+      "category": "video",
+      "contributor": "CLI-Anything-Team",
+      "contributor_url": "https://github.com/HKUDS/CLI-Anything"
     },
     {
       "name": "zoom",
@@ -183,7 +237,9 @@
       "install_cmd": "pip install git+https://github.com/HKUDS/CLI-Anything.git#subdirectory=zoom/agent-harness",
       "entry_point": "cli-anything-zoom",
       "skill_md": "zoom/agent-harness/cli_anything/zoom/skills/SKILL.md",
-      "category": "communication"
+      "category": "communication",
+      "contributor": "zhangxilong-43",
+      "contributor_url": "https://github.com/zhangxilong-43"
     }
   ]
 }

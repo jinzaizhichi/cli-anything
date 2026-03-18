@@ -383,6 +383,7 @@ Each installed CLI ships with a [`SKILL.md`](#-skillmd-generation) inside the Py
 | **🏢 Enterprise & Office** | Convert business applications and productivity tools into agent-accessible systems | NextCloud, GitLab, Grafana, Mattermost, LibreOffice, AppFlowy, NocoDB, Odoo (Community), Plane, ERPNext |
 | **📞 Communication & Collaboration** | Automate meeting scheduling, participant management, recording retrieval, and reporting through structured CLI | Zoom, Jitsi Meet, BigBlueButton, Mattermost |
 | **📐 Diagramming & Visualization** | Create and manipulate diagrams, flowcharts, architecture diagrams, and visual documentation programmatically | Draw.io (diagrams.net), Mermaid, PlantUML, Excalidraw, yEd |
+| **🌐 Network & Infrastructure** | Manage network services, DNS, ad-blocking, and infrastructure through structured CLI commands | AdGuardHome |
 | **✨ AI Content Generation** | Generate professional deliverables (slides, docs, diagrams, websites, research reports) through AI-powered cloud APIs | [AnyGen](https://www.anygen.io), Gamma, Beautiful.ai, Tome |
 
 ---
@@ -553,6 +554,13 @@ Each application received complete, production-ready CLI interfaces — not demo
 <td align="center">✅ 158</td>
 </tr>
 <tr>
+<td align="center"><strong>📝 <a href="mubu/agent-harness/">Mubu</a></strong></td>
+<td>Knowledge Management &amp; Outlining</td>
+<td><code>cli-anything-mubu</code></td>
+<td>Local Mubu data + sync logs</td>
+<td align="center">✅ 96</td>
+</tr>
+<tr>
 <td align="center"><strong>📹 OBS Studio</strong></td>
 <td>Live Streaming & Recording</td>
 <td><code>cli-anything-obs-studio</code></td>
@@ -650,6 +658,7 @@ blender       208 passed  ✅   (150 unit + 58 e2e)
 inkscape      202 passed  ✅   (148 unit + 54 e2e)
 audacity      161 passed  ✅   (107 unit + 54 e2e)
 libreoffice   158 passed  ✅   (89 unit + 69 e2e)
+mubu           96 passed  ✅   (85 unit + 11 e2e)
 obs-studio    153 passed  ✅   (116 unit + 37 e2e)
 kdenlive      155 passed  ✅   (111 unit + 44 e2e)
 shotcut       154 passed  ✅   (110 unit + 44 e2e)
@@ -715,6 +724,7 @@ cli-anything/
 ├── ✏️ inkscape/agent-harness/            # Inkscape CLI (202 tests)
 ├── 🎵 audacity/agent-harness/           # Audacity CLI (161 tests)
 ├── 📄 libreoffice/agent-harness/        # LibreOffice CLI (158 tests)
+├── 📝 mubu/agent-harness/               # Mubu CLI (96 tests)
 ├── 📹 obs-studio/agent-harness/         # OBS Studio CLI (153 tests)
 ├── 🎞️ kdenlive/agent-harness/           # Kdenlive CLI (155 tests)
 ├── 🎬 shotcut/agent-harness/            # Shotcut CLI (154 tests)
@@ -722,6 +732,7 @@ cli-anything/
 ├── 📐 drawio/agent-harness/             # Draw.io CLI (138 tests)
 ├── 🧜 mermaid/agent-harness/            # Mermaid Live Editor CLI (10 tests)
 ├── ✨ anygen/agent-harness/             # AnyGen CLI (50 tests)
+├── 🖼️ comfyui/agent-harness/            # ComfyUI CLI (70 tests)
 ├── 🧠 notebooklm/agent-harness/         # NotebookLM CLI (experimental, 21 tests)
 ├── 🖼️ comfyui/agent-harness/            # ComfyUI CLI (70 tests)
 └── 🦙 ollama/agent-harness/             # Ollama CLI (98 tests)

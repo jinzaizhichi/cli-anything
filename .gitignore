@@ -30,6 +30,7 @@
 !/inkscape/
 !/audacity/
 !/libreoffice/
+!/mubu/
 !/obs-studio/
 !/kdenlive/
 !/shotcut/
@@ -50,6 +51,8 @@
 /audacity/.*
 /libreoffice/*
 /libreoffice/.*
+/mubu/*
+/mubu/.*
 /obs-studio/*
 /obs-studio/.*
 /kdenlive/*
@@ -73,6 +76,7 @@
 !/inkscape/agent-harness/
 !/audacity/agent-harness/
 !/libreoffice/agent-harness/
+!/mubu/agent-harness/
 !/obs-studio/agent-harness/
 !/kdenlive/agent-harness/
 !/shotcut/agent-harness/
