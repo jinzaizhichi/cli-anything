@@ -83,8 +83,15 @@ ANCHOR_RE = re.compile(r"<a\b(?P<attrs>[^>]*)>(?P<label>.*?)</a>", re.IGNORECASE
 TOKEN_ATTR_RE = re.compile(r'data-token="(?P<token>[^"]+)"')
 HREF_DOC_RE = re.compile(r'href="https://mubu\.com/doc(?P<token>[^"?#/]+)"', re.IGNORECASE)
 NODE_ID_ALPHABET = string.ascii_letters + string.digits
-DAILY_TITLE_RE = re.compile(r"^\d{2}\.\d{1,2}\.\d{1,2}(?:-\d{1,2}(?:\.\d{1,2})?)?")
+DAILY_TITLE_PATTERNS = (
+    re.compile(r"^\d{2}\.\d{1,2}\.\d{1,2}(?:-\d{1,2}(?:\.\d{1,2})?)?$"),
+    re.compile(r"^\d{4}[./-]\d{1,2}[./-]\d{1,2}$"),
+    re.compile(r"^\d{4}年\d{1,2}月\d{1,2}日$"),
+    re.compile(r"^\d{1,2}[./-]\d{1,2}$"),
+    re.compile(r"^\d{1,2}月\d{1,2}日$"),
+)
 DEFAULT_DAILY_EXCLUDE_KEYWORDS = ("模板", "template")
+DEFAULT_DAILY_FOLDER_KEYWORDS = ("daily", "diary", "journal", "日记", "日志", "每日", "每天", "日常")
 
 
 def configured_daily_folder_ref(env: Mapping[str, str] | None = None) -> str | None:
@@ -411,6 +418,37 @@ def enrich_document_meta(
     }
 
 
+def document_meta_sort_key(meta: dict[str, Any]) -> tuple[int, int, str]:
+    return (
+        max(
+            numeric_values(
+                meta.get("updated_at"),
+                meta.get("created_at"),
+                meta.get("modified_at"),
+            ),
+            default=0,
+        ),
+        parse_revision_generation(meta.get("_rev") or meta.get("rev")),
+        str(meta.get("doc_id") or ""),
+    )
+
+
+def dedupe_document_metas_by_logical_path(
+    document_metas: Iterable[dict[str, Any]],
+    folder_paths: dict[str, str],
+) -> list[dict[str, Any]]:
+    latest_by_path: dict[str, dict[str, Any]] = {}
+    for meta in document_metas:
+        enriched = enrich_document_meta(meta, folder_paths)
+        logical_path = normalized_lookup_key(enriched.get("doc_path"))
+        if not logical_path:
+            logical_path = f"doc:{normalized_lookup_key(enriched.get('doc_id'))}"
+        current = latest_by_path.get(logical_path)
+        if current is None or document_meta_sort_key(enriched) >= document_meta_sort_key(current):
+            latest_by_path[logical_path] = enriched
+    return list(latest_by_path.values())
+
+
 def folder_documents(
     document_metas: Iterable[dict[str, Any]],
     folders: Iterable[dict[str, Any]],
@@ -422,12 +460,28 @@ def folder_documents(
         return [], None, ambiguous
 
     docs = [
-        enrich_document_meta(meta, folder_paths)
-        for meta in document_metas
+        meta
+        for meta in dedupe_document_metas_by_logical_path(document_metas, folder_paths)
         if meta.get("folder_id") == folder.get("folder_id")
     ]
-    docs.sort(key=lambda item: item.get("updated_at") or 0, reverse=True)
+    docs.sort(key=document_meta_sort_key, reverse=True)
     return docs, {**folder, "path": folder_paths.get(folder["folder_id"], "")}, []
+
+
+def document_meta_by_id(
+    document_metas: Iterable[dict[str, Any]],
+    folders: Iterable[dict[str, Any]],
+    doc_id: str,
+) -> dict[str, Any] | None:
+    _, folder_paths = build_folder_indexes(folders)
+    matches = [
+        enrich_document_meta(meta, folder_paths)
+        for meta in document_metas
+        if meta.get("doc_id") == doc_id
+    ]
+    if not matches:
+        return None
+    return max(matches, key=document_meta_sort_key)
 
 
 def iter_nodes(nodes: Iterable[dict[str, Any]], path: tuple[int, ...] = ()) -> Iterable[tuple[tuple[int, ...], dict[str, Any]]]:
@@ -665,10 +719,20 @@ def looks_like_daily_title(
     title = title.strip()
     if not title:
         return False
-    if not DAILY_TITLE_RE.match(title):
+    if not any(pattern.match(title) for pattern in DAILY_TITLE_PATTERNS):
         return False
     lowered = title.casefold()
     return not any(keyword.casefold() in lowered for keyword in exclude_keywords)
+
+
+def looks_like_daily_folder_name(
+    name: str | None,
+    keywords: Iterable[str] = DEFAULT_DAILY_FOLDER_KEYWORDS,
+) -> bool:
+    normalized_name = normalized_lookup_key(name)
+    if not normalized_name:
+        return False
+    return any(keyword.casefold() in normalized_name for keyword in keywords)
 
 
 def choose_current_daily_document(
@@ -947,8 +1011,8 @@ def resolve_document_reference(
     folders: Iterable[dict[str, Any]],
     doc_ref: str,
 ) -> tuple[dict[str, Any] | None, list[dict[str, Any]]]:
-    folder_by_id, folder_paths = build_folder_indexes(folders)
-    metas = [enrich_document_meta(meta, folder_paths) for meta in document_metas]
+    _, folder_paths = build_folder_indexes(folders)
+    metas = dedupe_document_metas_by_logical_path(document_metas, folder_paths)
 
     by_id = [meta for meta in metas if meta.get("doc_id") == doc_ref]
     if len(by_id) == 1:
@@ -1020,7 +1084,7 @@ def document_links(
                     links.append(
                         {
                             "source_doc_id": doc_id,
-                            "source_doc_title": document.get("title"),
+                            "source_doc_title": title_lookup.get(doc_id) or document.get("title"),
                             "source_node_id": node.get("id"),
                             "source_path": list(path),
                             "source_field": field,
@@ -1485,7 +1549,11 @@ def build_parser() -> argparse.ArgumentParser:
 
     daily_parser = subparsers.add_parser("daily", help="Find Daily-style folders and list the documents inside them.")
     daily_parser.add_argument("--storage-root", type=Path, default=DEFAULT_STORAGE_ROOT)
-    daily_parser.add_argument("--query", default="daily")
+    daily_parser.add_argument(
+        "--query",
+        default=None,
+        help="Optional folder-name substring filter. Defaults to built-in daily-folder heuristics.",
+    )
     daily_parser.add_argument("--limit", type=int, default=50)
     daily_parser.add_argument("--json", action="store_true")
 
@@ -1605,7 +1673,17 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "show":
         documents = load_latest_backups(args.root)
-        payload = show_document(documents, args.doc_id, max_depth=args.max_depth)
+        metas = load_document_metas(DEFAULT_STORAGE_ROOT)
+        folders = load_folders(DEFAULT_STORAGE_ROOT)
+        meta = document_meta_by_id(metas, folders, args.doc_id)
+        payload = show_document(
+            documents,
+            args.doc_id,
+            max_depth=args.max_depth,
+            title_override=meta.get("title") if meta else None,
+            folder_path=meta.get("folder_path") if meta else None,
+            doc_path=meta.get("doc_path") if meta else None,
+        )
         if payload is None:
             parser.error(f"document not found: {args.doc_id}")
         dump_output(payload, args.json)
@@ -1639,14 +1717,11 @@ def main(argv: list[str] | None = None) -> int:
         folders = load_folders(args.storage_root)
         _, folder_paths = build_folder_indexes(folders)
         payload = [
-            {
-                **meta,
-                "folder_path": folder_paths.get(meta.get("folder_id", ""), ""),
-            }
-            for meta in metas
+            meta
+            for meta in dedupe_document_metas_by_logical_path(metas, folder_paths)
             if meta.get("folder_id") == args.folder_id
         ]
-        payload.sort(key=lambda item: item.get("updated_at") or 0, reverse=True)
+        payload.sort(key=document_meta_sort_key, reverse=True)
         dump_output(payload[: args.limit], args.json)
         return 0
 
@@ -1692,21 +1767,33 @@ def main(argv: list[str] | None = None) -> int:
         folders = load_folders(args.storage_root)
         metas = load_document_metas(args.storage_root)
         _, folder_paths = build_folder_indexes(folders)
-        matched_folders = [
-            folder
-            for folder in folders
-            if args.query.lower() in (folder.get("name") or "").lower()
-        ]
+        logical_metas = dedupe_document_metas_by_logical_path(metas, folder_paths)
+        docs_by_folder: dict[str, list[dict[str, Any]]] = {}
+        for meta in logical_metas:
+            folder_id = meta.get("folder_id")
+            if isinstance(folder_id, str):
+                docs_by_folder.setdefault(folder_id, []).append(meta)
+        if args.query:
+            query = normalized_lookup_key(args.query)
+            matched_folders = [
+                folder
+                for folder in folders
+                if query in normalized_lookup_key(folder.get("name"))
+            ]
+        else:
+            matched_folders = [
+                folder
+                for folder in folders
+                if looks_like_daily_folder_name(folder.get("name"))
+                or choose_current_daily_document(docs_by_folder.get(folder.get("folder_id"), []))[0] is not None
+            ]
         matched_ids = {folder["folder_id"] for folder in matched_folders}
         docs = [
-            {
-                **meta,
-                "folder_path": folder_paths.get(meta.get("folder_id", ""), ""),
-            }
-            for meta in metas
+            meta
+            for meta in logical_metas
             if meta.get("folder_id") in matched_ids
         ]
-        docs.sort(key=lambda item: item.get("updated_at") or 0, reverse=True)
+        docs.sort(key=document_meta_sort_key, reverse=True)
         payload = {
             "folders": [
                 {**folder, "path": folder_paths.get(folder["folder_id"], "")}

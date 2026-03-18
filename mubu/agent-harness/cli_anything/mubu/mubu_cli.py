@@ -16,6 +16,8 @@ from cli_anything.mubu.utils import ReplSkin
 
 CONTEXT_SETTINGS = {"ignore_unknown_options": True, "allow_extra_args": True}
 COMMAND_HISTORY_LIMIT = 50
+PUBLIC_PROGRAM_NAME = "mubu-cli"
+COMPAT_PROGRAM_NAME = "cli-anything-mubu"
 DISCOVER_COMMANDS = {
     "docs": "List latest known document snapshots from local backups.",
     "folders": "List folder metadata from local RxDB storage.",
@@ -44,7 +46,7 @@ LEGACY_COMMANDS.update(DISCOVER_COMMANDS)
 LEGACY_COMMANDS.update(INSPECT_COMMANDS)
 LEGACY_COMMANDS.update(MUTATE_COMMANDS)
 
-REPL_HELP = """Interactive REPL for cli-anything-mubu
+REPL_HELP_TEMPLATE = """Interactive REPL for {program_name}
 
 Builtins:
   help              Show this REPL help
@@ -72,13 +74,32 @@ Examples:
 
 If you prefer no-argument daily helpers, set MUBU_DAILY_FOLDER='<daily-folder-ref>'.
 """
+REPL_COMMAND_HELP = REPL_HELP_TEMPLATE.format(program_name="the Mubu CLI")
+
+
+def normalize_program_name(program_name: str | None) -> str:
+    candidate = Path(program_name or "").name.strip()
+    if candidate == PUBLIC_PROGRAM_NAME:
+        return PUBLIC_PROGRAM_NAME
+    return COMPAT_PROGRAM_NAME
+
+
+def repl_help_text(program_name: str | None = None) -> str:
+    return REPL_HELP_TEMPLATE.format(program_name=normalize_program_name(program_name))
 
 
 def session_state_dir() -> Path:
     override = os.environ.get("CLI_ANYTHING_MUBU_STATE_DIR", "").strip()
     if override:
         return Path(override).expanduser()
-    return Path.home() / ".config" / "cli-anything-mubu"
+    config_root = Path.home() / ".config"
+    public_dir = config_root / PUBLIC_PROGRAM_NAME
+    legacy_dir = config_root / COMPAT_PROGRAM_NAME
+    if public_dir.exists():
+        return public_dir
+    if legacy_dir.exists():
+        return legacy_dir
+    return public_dir
 
 
 def session_state_path() -> Path:
@@ -253,14 +274,23 @@ def invoke_probe_command(ctx: click.Context | None, command_name: str, probe_arg
     return int(result or 0)
 
 
-def print_repl_banner(skin: ReplSkin) -> None:
+def print_repl_banner(skin: ReplSkin, program_name: str | None = None) -> None:
+    normalized_program_name = normalize_program_name(program_name)
     click.echo("Mubu REPL")
-    skin.print_banner()
+    if normalized_program_name == PUBLIC_PROGRAM_NAME:
+        click.echo(f"Command: {PUBLIC_PROGRAM_NAME}")
+        click.echo(f"Version: {__version__}")
+        if skin.skill_path:
+            click.echo(f"Skill: {skin.skill_path}")
+        click.echo("Type help for commands, quit to exit")
+        click.echo()
+    else:
+        skin.print_banner()
     click.echo(f"History: {skin.history_file}")
 
 
-def print_repl_help() -> None:
-    click.echo(REPL_HELP.rstrip())
+def print_repl_help(program_name: str | None = None) -> None:
+    click.echo(repl_help_text(program_name).rstrip())
 
 
 def parse_history_limit(argv: Sequence[str]) -> int:
@@ -272,7 +302,11 @@ def parse_history_limit(argv: Sequence[str]) -> int:
         raise RuntimeError(f"history limit must be an integer: {argv[1]}") from exc
 
 
-def handle_repl_builtin(argv: list[str], session: dict[str, object]) -> tuple[bool, int]:
+def handle_repl_builtin(
+    argv: list[str],
+    session: dict[str, object],
+    program_name: str | None = None,
+) -> tuple[bool, int]:
     if not argv:
         return True, 0
 
@@ -280,7 +314,7 @@ def handle_repl_builtin(argv: list[str], session: dict[str, object]) -> tuple[bo
     if command in {"exit", "quit"}:
         return True, 1
     if command == "help":
-        print_repl_help()
+        print_repl_help(program_name)
         return True, 0
     if command == "current-doc":
         current_doc = session.get("current_doc")
@@ -353,11 +387,11 @@ def handle_repl_builtin(argv: list[str], session: dict[str, object]) -> tuple[bo
     return False, 0
 
 
-def run_repl() -> int:
+def run_repl(program_name: str | None = None) -> int:
     session = load_session_state()
     skin = ReplSkin("mubu", version=__version__, history_file=str(session_state_dir() / "history.txt"))
     prompt_session = skin.create_prompt_session()
-    print_repl_banner(skin)
+    print_repl_banner(skin, program_name)
     if session.get("current_doc"):
         click.echo(f"Current doc: {session['current_doc']}")
     if session.get("current_node"):
@@ -383,7 +417,7 @@ def run_repl() -> int:
             click.echo(f"parse error: {exc}", err=True)
             continue
 
-        handled, control = handle_repl_builtin(argv, session)
+        handled, control = handle_repl_builtin(argv, session, program_name)
         if handled:
             if control == 1:
                 skin.print_goodbye()
@@ -405,8 +439,9 @@ def cli(ctx: click.Context, json_output: bool) -> int:
     """Agent-native CLI for the Mubu desktop app with REPL and grouped command domains."""
     ctx.ensure_object(dict)
     ctx.obj["json_output"] = json_output
+    ctx.obj["prog_name"] = normalize_program_name(ctx.info_name)
     if ctx.invoked_subcommand is None:
-        return run_repl()
+        return run_repl(ctx.obj["prog_name"])
     return 0
 
 
@@ -668,10 +703,15 @@ def history_command(ctx: click.Context, limit: int, json_output: bool) -> int:
     return 0
 
 
-@cli.command("repl", help=REPL_HELP)
-def repl_command() -> int:
-    """Interactive REPL for cli-anything-mubu."""
-    return run_repl()
+@cli.command("repl", help=REPL_COMMAND_HELP)
+@click.pass_context
+def repl_command(ctx: click.Context) -> int:
+    """Interactive REPL for the Mubu CLI."""
+    root = ctx.find_root()
+    program_name = None
+    if root is not None and root.obj is not None:
+        program_name = root.obj.get("prog_name")
+    return run_repl(program_name)
 
 
 def create_legacy_command(command_name: str, help_text: str) -> click.Command:
@@ -688,10 +728,11 @@ for _command_name, _help_text in LEGACY_COMMANDS.items():
     cli.add_command(create_legacy_command(_command_name, _help_text))
 
 
-def dispatch(argv: list[str] | None = None) -> int:
+def dispatch(argv: list[str] | None = None, prog_name: str | None = None) -> int:
     args = list(sys.argv[1:] if argv is None else argv)
+    normalized_prog_name = normalize_program_name(prog_name or sys.argv[0])
     try:
-        result = cli.main(args=args, prog_name="cli-anything-mubu", standalone_mode=False)
+        result = cli.main(args=args, prog_name=normalized_prog_name, standalone_mode=False)
     except click.exceptions.Exit as exc:
         return int(exc.exit_code)
     except click.ClickException as exc:
@@ -701,7 +742,7 @@ def dispatch(argv: list[str] | None = None) -> int:
 
 
 def entrypoint(argv: list[str] | None = None) -> int:
-    return dispatch(argv)
+    return dispatch(argv, prog_name=sys.argv[0])
 
 
 __all__ = [
@@ -712,10 +753,12 @@ __all__ = [
     "default_session_state",
     "dispatch",
     "entrypoint",
+    "normalize_program_name",
     "expand_repl_aliases",
     "expand_repl_aliases_with_state",
     "handle_repl_builtin",
     "load_session_state",
+    "repl_help_text",
     "resolve_current_daily_doc_ref",
     "run_repl",
     "save_session_state",
