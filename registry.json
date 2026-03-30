@@ -397,6 +397,7 @@
       "contributor": "ashroth",
       "contributor_url": "https://github.com/ashroth"
     },
+    {
       "name": "clibrowser",
       "display_name": "clibrowser",
       "version": "0.1.0",
@@ -423,7 +424,6 @@
       "category": "graphics",
       "contributor": "Taeyoung96",
       "contributor_url": "https://github.com/Taeyoung96"
- main
     }
   ]
 }
