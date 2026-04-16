@@ -50,6 +50,12 @@ def _dedupe(values: Iterable[str]) -> list[str]:
     return result
 
 
+def _normalized_install_key(path: str) -> str:
+    """Normalize a path for install-root comparisons across slash styles."""
+    normalized = os.path.normcase(os.path.normpath(path))
+    return re.sub(r"[\\/]+", "/", normalized).rstrip("/")
+
+
 def _scan_directory(directory: str) -> dict[str, str]:
     """Scan a directory for known Nsight binaries."""
     found: dict[str, str] = {}
@@ -331,7 +337,7 @@ def list_installations(
         install_location = record.get("install_location")
         normalized_location = None
         if install_location:
-            normalized_location = os.path.normcase(os.path.normpath(install_location))
+            normalized_location = _normalized_install_key(install_location)
         guessed_version = (
             _extract_version_from_text(record.get("display_name") or "")
             or _extract_version_from_text(record.get("display_version") or "")
@@ -341,7 +347,14 @@ def list_installations(
         if normalized_location:
             for item in installations:
                 item_root = item.get("install_root")
-                if item_root and os.path.normcase(os.path.normpath(item_root)) == normalized_location:
+                if not item_root:
+                    continue
+                normalized_root = _normalized_install_key(item_root)
+                if (
+                    normalized_root == normalized_location
+                    or normalized_root.startswith(normalized_location + "/")
+                    or normalized_location.startswith(normalized_root + "/")
+                ):
                     matched_entry = item
                     break
         elif guessed_version:

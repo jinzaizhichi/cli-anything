@@ -96,6 +96,11 @@ cli-anything-nsight-graphics gpu-trace summarize ^
   --input-dir D:\traces
 ```
 
+`--input-dir` may point either at a specific exported trace directory or at a
+parent output root that contains multiple exports. When multiple complete GPU
+Trace exports are present, the CLI summarizes the newest complete export
+directory so stale tables are not mixed into the result.
+
 ### Generate a C++ capture
 
 ```bash
@@ -150,6 +155,8 @@ Capture-producing commands also include:
 
 When `gpu-trace capture --summarize` is used, the result also includes:
 
+- `summary.output_dir`
+- `summary.search_root`
 - `summary.frame_time_ms`
 - `summary.fps_estimate`
 - `summary.metrics`
@@ -211,7 +218,8 @@ That gives you:
 
 - the `.ngfx-gputrace` artifact
 - exported `FRAME.xls`, `GPUTRACE_FRAME.xls`, and `D3DPERF_EVENTS.xls`
-- a parsed summary with frame time, estimated FPS, selected counters, and top GPU events
+- a parsed summary from the newest complete export directory, with frame time,
+  estimated FPS, selected counters, and top GPU events
 
 ## Human + AI Workflow
 

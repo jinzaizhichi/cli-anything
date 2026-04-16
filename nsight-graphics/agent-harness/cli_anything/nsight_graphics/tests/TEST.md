@@ -2,7 +2,7 @@
 
 ## Test Inventory Plan
 
-- `test_core.py`: 31 unit tests planned
+- `test_core.py`: 32 unit tests planned
 - `test_full_e2e.py`: 4 E2E tests planned
 
 ## Unit Test Plan
@@ -19,6 +19,7 @@
 - unified and split command construction
 - artifact diffing behavior
 - exported GPU Trace summary parsing
+- newest-complete GPU Trace export selection when multiple exports share an output root
 
 ### `core/*.py`
 
@@ -64,8 +65,8 @@ python -m pytest cli_anything/nsight_graphics/tests -v --tb=no
 ============================= test session starts =============================
 platform win32 -- Python 3.11.9, pytest-9.0.3, pluggy-1.6.0 -- C:\Users\aimidi\AppData\Local\Programs\Python\Python311\python.exe
 cachedir: .pytest_cache
-rootdir: D:\code\D5\CLI-Anything-nsight-graphics-dev\nsight-graphics\agent-harness
-collecting ... collected 35 items
+rootdir: C:\Users\aimidi\.codex\worktrees\da29\CLI-Anything\nsight-graphics\agent-harness
+collecting ... collected 36 items
 
 cli_anything/nsight_graphics/tests/test_core.py::TestOutputAndErrors::test_output_json PASSED
 cli_anything/nsight_graphics/tests/test_core.py::TestOutputAndErrors::test_handle_error_debug PASSED
@@ -82,6 +83,7 @@ cli_anything/nsight_graphics/tests/test_core.py::TestCommandBuilders::test_build
 cli_anything/nsight_graphics/tests/test_core.py::TestCommandBuilders::test_build_split_capture_command_maps_wait_seconds PASSED
 cli_anything/nsight_graphics/tests/test_core.py::TestCommandBuilders::test_diff_snapshots_reports_new_nonempty_files PASSED
 cli_anything/nsight_graphics/tests/test_core.py::TestCommandBuilders::test_gpu_trace_summary_from_export_dir PASSED
+cli_anything/nsight_graphics/tests/test_core.py::TestCommandBuilders::test_gpu_trace_summary_prefers_newest_complete_export_dir PASSED
 cli_anything/nsight_graphics/tests/test_core.py::TestCoreModules::test_frame_capture_uses_unified_ngfx PASSED
 cli_anything/nsight_graphics/tests/test_core.py::TestCoreModules::test_frame_capture_split_mode_rejects_perf_exports PASSED
 cli_anything/nsight_graphics/tests/test_core.py::TestCoreModules::test_gpu_trace_requires_arch_for_metric_set PASSED
@@ -103,13 +105,13 @@ cli_anything/nsight_graphics/tests/test_full_e2e.py::TestTargetedE2E::test_frame
 cli_anything/nsight_graphics/tests/test_full_e2e.py::TestTargetedE2E::test_gpu_trace_capture SKIPPED
 cli_anything/nsight_graphics/tests/test_full_e2e.py::TestTargetedE2E::test_cpp_capture SKIPPED
 
-======================== 32 passed, 3 skipped in 1.92s ========================
+======================== 33 passed, 3 skipped in 1.86s ========================
 ```
 
 ## Summary Statistics
 
-- Total tests collected: 35
-- Passed: 32
+- Total tests collected: 36
+- Passed: 33
 - Skipped: 3
 - Pass rate for executed tests: 100%
 
@@ -118,3 +120,5 @@ cli_anything/nsight_graphics/tests/test_full_e2e.py::TestTargetedE2E::test_cpp_c
 - `doctor info` E2E passed against the local Nsight Graphics installation.
 - Target-dependent E2E scenarios are implemented but currently skipped until
   `NSIGHT_GRAPHICS_TEST_EXE` (and optional args/workdir) are provided.
+- GPU Trace summary coverage now includes the case where an output root contains
+  multiple export directories; the newest complete export is selected.

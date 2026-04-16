@@ -21,11 +21,64 @@ SUMMARY_METRICS = {
     "pcie_throughput_pct": "pcie__throughput.avg.pct_of_peak_sustained_elapsed",
 }
 
+REQUIRED_EXPORT_FILES = (
+    "FRAME.xls",
+    "GPUTRACE_FRAME.xls",
+    "D3DPERF_EVENTS.xls",
+)
 
-def _find_first(output_dir: str, name: str) -> str | None:
-    """Find the first matching file under an export directory."""
-    matches = sorted(Path(output_dir).rglob(name))
-    return str(matches[0]) if matches else None
+
+def _find_export_dir(output_dir: str) -> tuple[str, dict[str, str]]:
+    """Pick the newest export directory containing a complete GPU Trace export."""
+    output_root = Path(output_dir).resolve()
+    matches_by_name = {
+        name: sorted(output_root.rglob(name))
+        for name in (*REQUIRED_EXPORT_FILES, "GPUTRACE_REGIMES.xls")
+    }
+
+    candidate_dirs = {
+        path.parent
+        for name in REQUIRED_EXPORT_FILES
+        for path in matches_by_name[name]
+    }
+    complete_candidates: list[tuple[int, Path, dict[str, str]]] = []
+    for directory in candidate_dirs:
+        required_paths = [directory / name for name in REQUIRED_EXPORT_FILES]
+        if not all(path.is_file() for path in required_paths):
+            continue
+        newest_required_mtime = max(path.stat().st_mtime_ns for path in required_paths)
+        files = {
+            "frame": str(directory / "FRAME.xls"),
+            "trace_frame": str(directory / "GPUTRACE_FRAME.xls"),
+            "events": str(directory / "D3DPERF_EVENTS.xls"),
+            "regimes": None,
+        }
+        regimes_path = directory / "GPUTRACE_REGIMES.xls"
+        if regimes_path.is_file():
+            files["regimes"] = str(regimes_path)
+        complete_candidates.append((newest_required_mtime, directory, files))
+
+    if complete_candidates:
+        _, export_dir, files = max(
+            complete_candidates,
+            key=lambda item: (item[0], str(item[1])),
+        )
+        return str(export_dir), files
+
+    missing = [
+        name
+        for name in REQUIRED_EXPORT_FILES
+        if not matches_by_name[name]
+    ]
+    if missing:
+        raise RuntimeError(
+            "GPU Trace export summary requires exported tables. Missing: "
+            + ", ".join(missing)
+        )
+    raise RuntimeError(
+        "GPU Trace export summary requires FRAME.xls, GPUTRACE_FRAME.xls, and "
+        "D3DPERF_EVENTS.xls to exist under the same export directory."
+    )
 
 
 def _read_kv_file(path: str) -> dict[str, str]:
@@ -124,25 +177,11 @@ def _make_highlights(
 def summarize_export_dir(output_dir: str, top_n: int = 10) -> dict[str, Any]:
     """Summarize exported GPU Trace tables from an output directory."""
     output_root = str(Path(output_dir).resolve())
-    frame_path = _find_first(output_root, "FRAME.xls")
-    trace_frame_path = _find_first(output_root, "GPUTRACE_FRAME.xls")
-    events_path = _find_first(output_root, "D3DPERF_EVENTS.xls")
-    regimes_path = _find_first(output_root, "GPUTRACE_REGIMES.xls")
-
-    if not frame_path or not trace_frame_path or not events_path:
-        missing = [
-            name
-            for name, path in {
-                "FRAME.xls": frame_path,
-                "GPUTRACE_FRAME.xls": trace_frame_path,
-                "D3DPERF_EVENTS.xls": events_path,
-            }.items()
-            if not path
-        ]
-        raise RuntimeError(
-            "GPU Trace export summary requires exported tables. Missing: "
-            + ", ".join(missing)
-        )
+    export_dir, files = _find_export_dir(output_root)
+    frame_path = files["frame"]
+    trace_frame_path = files["trace_frame"]
+    events_path = files["events"]
+    regimes_path = files["regimes"]
 
     frame_data = _read_kv_file(frame_path)
     trace_metrics = _read_kv_file(trace_frame_path)
@@ -180,13 +219,9 @@ def summarize_export_dir(output_dir: str, top_n: int = 10) -> dict[str, Any]:
     top_level_events = [item for item in top_events if item["depth"] == 0]
 
     return {
-        "output_dir": output_root,
-        "files": {
-            "frame": frame_path,
-            "trace_frame": trace_frame_path,
-            "events": events_path,
-            "regimes": regimes_path,
-        },
+        "output_dir": export_dir,
+        "search_root": output_root,
+        "files": files,
         "frame_time_ms": frame_time_ms,
         "fps_estimate": fps_estimate,
         "metrics": summary_metrics,

@@ -22,6 +22,8 @@ This harness targets the official command-line interfaces rather than the GUI.
 - Frame Debugger capture orchestration
 - GPU Trace capture orchestration
 - GPU Trace export summarization
+- newest-complete GPU Trace export selection when an output root contains
+  multiple exports
 - Generate C++ Capture orchestration
 - artifact discovery in output directories
 
@@ -48,3 +50,7 @@ For one-step performance triage, the intended flow is:
 2. optionally pin a version with `--nsight-path`
 3. run `gpu-trace capture --auto-export --summarize`
 4. inspect the returned summary and the exported `.xls` tables if you need more detail
+
+If the chosen output root already contains older GPU Trace exports, the harness
+summarizes the newest complete export directory to avoid mixing stale tables
+from earlier runs.

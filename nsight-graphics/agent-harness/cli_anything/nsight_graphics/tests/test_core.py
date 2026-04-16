@@ -172,7 +172,8 @@ class TestBackendDiscovery:
         assert result["installations"][0]["tool_mode"] == "registered-only"
 
     def test_list_installations_merges_registry_metadata_into_filesystem_entry(self, tmp_path):
-        install_dir = tmp_path / "Nsight Graphics 2025.1" / "host" / "windows-desktop-nomad-x64"
+        install_root = tmp_path / "Nsight Graphics 2025.1"
+        install_dir = install_root / "host" / "windows-desktop-nomad-x64"
         install_dir.mkdir(parents=True)
         (install_dir / "ngfx.exe").write_text("", encoding="utf-8")
 
@@ -180,7 +181,7 @@ class TestBackendDiscovery:
             {
                 "display_name": "NVIDIA Nsight Graphics 2025.1",
                 "display_version": "25.1.0",
-                "install_location": str(install_dir),
+                "install_location": str(install_root),
                 "install_source": "C:/Installers",
                 "uninstall_string": "msiexec /x ...",
                 "publisher": "NVIDIA Corporation",
@@ -321,6 +322,58 @@ class TestCommandBuilders:
         assert summary["top_events"][0]["event"] == "Scene"
         assert summary["top_events"][1]["event"] == "DirectLighting"
         assert summary["highlights"]
+
+    def test_gpu_trace_summary_prefers_newest_complete_export_dir(self, tmp_path):
+        old_export = tmp_path / "A_old_export"
+        new_export = tmp_path / "B_new_export"
+        old_export.mkdir()
+        new_export.mkdir()
+
+        old_files = {
+            "frame": old_export / "FRAME.xls",
+            "trace": old_export / "GPUTRACE_FRAME.xls",
+            "events": old_export / "D3DPERF_EVENTS.xls",
+        }
+        old_files["frame"].write_text("GPU frame time\t40.0\n", encoding="utf-8")
+        old_files["trace"].write_text(
+            "FE_B.TriageAC.fe__draw_count.sum\t10\n",
+            encoding="utf-8",
+        )
+        old_files["events"].write_text(
+            "event_text\ttime_ms\nFrame 1\t40.0\nOldPass\t30.0\n",
+            encoding="utf-8",
+        )
+
+        new_files = {
+            "frame": new_export / "FRAME.xls",
+            "trace": new_export / "GPUTRACE_FRAME.xls",
+            "events": new_export / "D3DPERF_EVENTS.xls",
+        }
+        new_files["frame"].write_text("GPU frame time\t12.5\n", encoding="utf-8")
+        new_files["trace"].write_text(
+            "FE_B.TriageAC.fe__draw_count.sum\t123\n",
+            encoding="utf-8",
+        )
+        new_files["events"].write_text(
+            "event_text\ttime_ms\nFrame 2\t12.5\nNewPass\t8.5\n",
+            encoding="utf-8",
+        )
+
+        for path in old_files.values():
+            os.utime(path, ns=(1_000_000_000, 1_000_000_000))
+        for path in new_files.values():
+            os.utime(path, ns=(2_000_000_000, 2_000_000_000))
+
+        summary = gpu_trace.summarize_export_dir(str(tmp_path), top_n=3)
+
+        assert summary["output_dir"] == str(new_export.resolve())
+        assert summary["search_root"] == str(tmp_path.resolve())
+        assert summary["frame_time_ms"] == pytest.approx(12.5)
+        assert summary["metrics"]["draw_count"] == 123
+        assert summary["top_events"][0]["event"] == "NewPass"
+        assert Path(summary["files"]["frame"]).parent == new_export.resolve()
+        assert Path(summary["files"]["trace_frame"]).parent == new_export.resolve()
+        assert Path(summary["files"]["events"]).parent == new_export.resolve()
 
 
 class TestCoreModules:
