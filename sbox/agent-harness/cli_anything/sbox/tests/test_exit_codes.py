@@ -113,6 +113,25 @@ class TestOneShotFailureExitsNonZero:
         result = _run(["asset", "compile", str(tmp_path / "nope.vmat")])
         assert result.returncode == 1
 
+    def test_scene_list_missing_file_exits_one(self, tmp_path):
+        """scene list on a missing file: bare except Exception path.
+
+        Direct gate of the _output_error sys.exit fix - this handler does
+        ``except Exception as exc: _output_error(ctx, str(exc))`` with no
+        ClickException re-raise short-circuit, so without the fix the
+        FileNotFoundError would print and exit 0.
+        """
+        result = _run(["scene", "list", str(tmp_path / "missing.scene")])
+        assert result.returncode == 1
+
+    def test_asset_info_corrupt_json_exits_one(self, tmp_path):
+        """asset info on a corrupt .scene surfaces _parse_json_asset's error
+        and exits 1, instead of burying the error in nested json_info."""
+        bad_scene = tmp_path / "broken.scene"
+        bad_scene.write_text("{not valid json", encoding="utf-8")
+        result = _run(["asset", "info", str(bad_scene)])
+        assert result.returncode == 1
+
 
 class TestOneShotSuccessExitsZero:
     """Successful one-shot commands still exit 0 after the fix."""
@@ -194,6 +213,61 @@ class TestProjectValidateExitsNonZero:
 # ---------------------------------------------------------------------------
 # REPL mode unit tests - _output_error must NOT sys.exit when repl=True
 # ---------------------------------------------------------------------------
+
+
+class TestAuditedFailurePaths:
+    """Coverage for failure paths added during the silent-failure audit.
+
+    These paths return dicts (not exceptions) on failure, so the standard
+    ``except Exception`` path doesn't catch them. The audit added explicit
+    success/error checks to surface them; these tests pin those checks.
+    """
+
+    def test_asset_compile_returns_success_false_exits_one(self, monkeypatch):
+        """asset compile sees ``success=False`` from run_resource_compiler
+        and exits 1 with the compiler's stderr in the error message."""
+        from click.testing import CliRunner
+        from cli_anything.sbox import sbox_cli
+        from cli_anything.sbox.utils import sbox_backend
+
+        def fake_compile(asset_path):
+            return {
+                "success": False,
+                "return_code": 1,
+                "stdout": "",
+                "stderr": "mock compiler error: bad shader",
+                "asset_path": asset_path,
+                "compiler_path": "/fake/resourcecompiler",
+            }
+
+        monkeypatch.setattr(sbox_backend, "run_resource_compiler", fake_compile)
+
+        runner = CliRunner()
+        result = runner.invoke(sbox_cli.cli, ["asset", "compile", "/fake/path.vmat"])
+
+        assert result.exit_code == 1
+        # The error message includes both rc and stderr context.
+        assert "Resource compilation failed" in result.output
+        assert "mock compiler error" in result.output
+
+    def test_server_info_version_error_exits_one(self, monkeypatch):
+        """server info sees ``error`` field in get_sbox_version() and exits 1
+        instead of reporting "version: unknown" with exit 0."""
+        from click.testing import CliRunner
+        from cli_anything.sbox import sbox_cli
+        from cli_anything.sbox.utils import sbox_backend
+
+        monkeypatch.setattr(sbox_backend, "find_executable", lambda name: "/fake/sbox-server.exe")
+        monkeypatch.setattr(sbox_backend, "get_sbox_version", lambda: {
+            "version": "unknown",
+            "error": "mock: .version file unreadable",
+        })
+
+        runner = CliRunner()
+        result = runner.invoke(sbox_cli.cli, ["server", "info"])
+
+        assert result.exit_code == 1
+        assert "Failed to read s&box version" in result.output
 
 
 class TestReplModeAbsorbsExit:

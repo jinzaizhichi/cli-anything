@@ -586,7 +586,7 @@ def generate_class(
         lines.append( f"{indent}\tpublic {mstatic}{mreturn} {mname}( {mparams} )" )
         lines.append( f"{indent}\t{{" )
         if mbody:
-            for bline in mbody.split( "\\n" ):
+            for bline in mbody.split( "\n" ):
                 lines.append( f"{indent}\t\t{bline}" )
         lines.append( f"{indent}\t}}" )
 

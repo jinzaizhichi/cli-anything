@@ -1000,7 +1000,7 @@ Each application received complete, production-ready CLI interfaces — not demo
 <td>Game Development</td>
 <td><code>cli-anything-sbox</code></td>
 <td>Source 2 game engine - direct file I/O on .scene/.prefab/.vmat/.vsnd JSON</td>
-<td align="center">✅ 238</td>
+<td align="center">✅ 244</td>
 </tr>
 <tr>
 <td align="center"><strong>🐞 <a href="lldb/agent-harness/">LLDB</a></strong></td>
@@ -1166,7 +1166,7 @@ cli-anything/
 ├── 🛡️ adguardhome/agent-harness/       # AdGuard Home CLI (36 tests)
 ├── 🦙 ollama/agent-harness/             # Ollama CLI (98 tests)
 ├── 🎮 godot/agent-harness/              # Godot Engine CLI (24 tests)
-├── 📦 sbox/agent-harness/               # s&box CLI (238 tests: 155 unit + 17 orchestrator + 50 e2e + 16 exit-code)
+├── 📦 sbox/agent-harness/               # s&box CLI (244 tests: 157 unit + 17 orchestrator + 50 e2e + 20 exit-code)
 ├── 🎨 sketch/agent-harness/             # Sketch CLI (19 tests, Node.js)
 ├── 🔬 renderdoc/agent-harness/          # RenderDoc CLI (59 tests)
 ├── 🟩 nsight-graphics/agent-harness/    # Nsight Graphics CLI (40 tests)

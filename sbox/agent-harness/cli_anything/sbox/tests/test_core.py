@@ -1057,6 +1057,33 @@ class TestSession:
         assert status["undo_count"] == 0
         assert status["redo_count"] == 0
 
+    def test_session_load_corrupt_file_warns_and_preserves_backup(self, tmp_path, capsys):
+        """A malformed session file is preserved as .corrupt.<ts> and warned about.
+
+        Reset must not be silent: the user's undo history could otherwise be
+        destroyed without any signal. The backup uses a timestamp suffix so a
+        second corruption does not silently overwrite the first.
+        """
+        session_path = tmp_path / "session.json"
+        session_path.write_text("not valid json{{{", encoding="utf-8")
+
+        session = Session(session_path=str(session_path))
+
+        captured = capsys.readouterr()
+        assert "could not be read" in captured.err
+        assert "preserved as" in captured.err
+
+        # Original file moved aside
+        assert not session_path.exists()
+
+        # Backup exists with timestamp suffix and contains the original bytes
+        backups = list(tmp_path.glob("session.json.corrupt.*"))
+        assert len(backups) == 1
+        assert backups[0].read_text(encoding="utf-8") == "not valid json{{{"
+
+        # Session is reset to empty state
+        assert session.get_status()["project_path"] is None
+
 
 # ============================================================================
 # TestExport
@@ -1698,6 +1725,28 @@ class TestCodegenClass:
         result = generate_class( "EnemyManager", base_class="BaseManager" )
         assert "public class EnemyManager : BaseManager" in result["content"]
         assert "using Sandbox;" in result["content"]
+
+    def test_generate_class_method_with_multiline_body(self):
+        """Method body containing newlines must be split into separate output lines.
+
+        Regression test for a bug where the body was split on the literal
+        two-character string ``\\n`` instead of an actual newline, collapsing
+        every multi-line method body into a single line of malformed C#.
+        """
+        result = generate_class( "Counter", methods=[
+            {
+                "name": "Tick",
+                "return_type": "void",
+                "body": "var x = 1;\nvar y = 2;\nreturn;",
+            }
+        ])
+        content = result["content"]
+        assert "\t\tvar x = 1;" in content
+        assert "\t\tvar y = 2;" in content
+        assert "\t\treturn;" in content
+        # The literal two-character sequence \n must NOT appear as a body
+        # line - that would mean the buggy split was still in effect.
+        assert "\t\tvar x = 1;\\nvar y = 2;" not in content
 
 
 class TestLocalizationBulkSet:

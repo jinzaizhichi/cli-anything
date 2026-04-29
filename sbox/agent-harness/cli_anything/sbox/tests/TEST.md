@@ -7,11 +7,11 @@ the `agent-harness/` directory.
 
 | Test File | Coverage | Tests |
 |---|---|---|
-| `test_core.py` | All 13 core modules: project, scene, prefab, codegen, input_config, collision_config, material, sound, localization, session, export, validate, plus the s&box backend resolver | **155** |
+| `test_core.py` | All 13 core modules: project, scene, prefab, codegen, input_config, collision_config, material, sound, localization, session, export, validate, plus the s&box backend resolver | **157** |
 | `test_full_e2e.py` | CLI surface via subprocess invocation, project workflows end-to-end, sbox_backend integration | **50** |
 | `test_orchestrator.py` | Map-generation test orchestrator (combo matrix, sentinel polling, RGBA -> PNG conversion, config I/O) | **17** |
-| `test_exit_codes.py` | One-shot CLI exit-code contract: failures exit 1 (human + JSON modes), success exits 0, validation failure exits 1, REPL absorbs SystemExit | **16** |
-| **Total** | | **238** |
+| `test_exit_codes.py` | One-shot CLI exit-code contract: failures exit 1 (human + JSON modes), success exits 0, validation failure exits 1, REPL absorbs SystemExit. Plus monkeypatched coverage of audited dict-returning failure paths (asset compile, server info) | **20** |
+| **Total** | | **244** |
 
 ## 2. Running the Tests
 
@@ -45,7 +45,7 @@ python -m pytest cli_anything/sbox/tests/ -v
 
 ## 3. Test Coverage by Class
 
-### `test_core.py` (155 tests, 36 classes)
+### `test_core.py` (157 tests, 36 classes)
 
 | Class | Tests | Module Under Test |
 |---|---|---|
@@ -68,7 +68,7 @@ python -m pytest cli_anything/sbox/tests/ -v
 | `TestPrefabDiff` | 2 | `core.prefab.diff_prefabs` - identical, root changes |
 | `TestCodegen` | 10 | `core.codegen` - component basic, with properties, networked, interfaces, lifecycle methods, gameresource, editor menu, code style (tabs / Allman / CRLF) |
 | `TestCodegenRazor` | 5 | `core.codegen.generate_razor` |
-| `TestCodegenClass` | 2 | `core.codegen.generate_class` - static class, base class |
+| `TestCodegenClass` | 3 | `core.codegen.generate_class` - static class, base class, multiline method body regression |
 | `TestCodegenPanelComponent` | 5 | `core.codegen.generate_panel_component` - basic, includes ScreenPanel, namespace, properties, unique GUIDs |
 | `TestInputConfig` | 6 | `core.input_config` - get default, add, duplicate, remove, set, list |
 | `TestCollisionConfig` | 5 | `core.collision_config` - get default, add layer, remove built-in, add rule, remove rule |
@@ -79,7 +79,7 @@ python -m pytest cli_anything/sbox/tests/ -v
 | `TestSoundUpdate` | 2 | `core.sound.update_sound_event` |
 | `TestLocalization` | 5 | `core.localization` - new, set, get, list, remove |
 | `TestLocalizationBulkSet` | 1 | `core.localization.bulk_set` |
-| `TestSession` | 5 | `core.session` - create, set project, undo/redo, save/load, clear |
+| `TestSession` | 6 | `core.session` - create, set project, undo/redo, save/load, clear, corrupt-file warning + timestamped backup |
 | `TestExport` | 3 | `core.export` - list assets, filtered list, find project dir |
 | `TestAssetRefGraph` | 5 | `core.export.find_asset_refs` + `find_unused_assets` |
 | `TestAssetRenameMove` | 7 | `core.export.rename_asset` + `move_asset` - both with dry-run, target-exists, source-missing, cross-directory |
@@ -104,13 +104,14 @@ python -m pytest cli_anything/sbox/tests/ -v
 | `TestRgbaConversion` | 2 | RGBA byte-array -> PNG via Pillow |
 | `TestDataPathResolution` | 2 | `FileSystem.Data` path resolution across editor and standalone |
 
-### `test_exit_codes.py` (16 tests, 3 classes)
+### `test_exit_codes.py` (20 tests, 5 classes)
 
 | Class | Tests | Coverage |
 |---|---|---|
-| `TestOneShotFailureExitsNonZero` | 9 | Failure paths in one-shot mode return exit 1: missing scene/project file (human + JSON), missing localization key, missing required args, invalid JSON in `--properties`, asset compile without s&box install. Includes the `--help` exit-0 baseline. |
+| `TestOneShotFailureExitsNonZero` | 11 | Failure paths in one-shot mode return exit 1: missing scene/project file (human + JSON), missing localization key, missing required args, invalid JSON in `--properties`, asset compile without s&box install, scene list on missing file (true gate of the bare `except Exception` path), asset info on corrupt JSON (json_info.error surface). Includes the `--help` exit-0 baseline. |
 | `TestOneShotSuccessExitsZero` | 2 | Confirms the success path was not regressed by the exit-1-on-failure change |
 | `TestProjectValidateExitsNonZero` | 2 | `project validate` exits 1 when `ok=False` (broken refs) so CI can gate on it; clean project still exits 0 |
+| `TestAuditedFailurePaths` | 2 | Monkeypatched coverage for dict-returning failure paths: `asset compile` with `success=False` from resourcecompiler, `server info` with `error` field in `get_sbox_version()`. These can't be triggered without s&box installed, so a CliRunner + monkeypatch combination pins the contract. |
 | `TestReplModeAbsorbsExit` | 3 | `_output_error` does not call `sys.exit` when `ctx.obj["repl"] = True`; one-shot is the safe default when the key is absent |
 
 ## 4. Coverage by Source Module
@@ -131,7 +132,7 @@ python -m pytest cli_anything/sbox/tests/ -v
 | `core/validate.py` | 4 | - | 2 (validate clean, validate broken) |
 | `core/test_orchestrator.py` | 17 (full file) | - | - |
 | `utils/sbox_backend.py` | - | 3 (installation, version, executable - skipped if no s&box) | - |
-| `sbox_cli.py` (CLI) | - | - | 40 (full TestCLISubprocess) + 16 (test_exit_codes: failure exit-code contract + REPL absorb) |
+| `sbox_cli.py` (CLI) | - | - | 40 (full TestCLISubprocess) + 20 (test_exit_codes: failure exit-code contract + audited-path monkeypatch coverage + REPL absorb) |
 
 ## 5. E2E Prerequisites
 

@@ -86,17 +86,34 @@ class Session:
         except (OSError, json.JSONDecodeError, ValueError) as exc:
             # Preserve the malformed file before resetting so the user can
             # recover state if needed; emit a stderr warning so the reset is
-            # not silent.
+            # not silent. Use a timestamp suffix so a second corruption does
+            # not silently overwrite the first preserved copy.
+            backup = f"{self._session_path}.corrupt.{int( time.time() )}"
+            preserved = False
             try:
-                backup = self._session_path + ".corrupt"
                 if os.path.isfile( self._session_path ):
                     os.replace( self._session_path, backup )
-                sys.stderr.write(
-                    f"warning: session file at {self._session_path} could not be read "
-                    f"({exc}); preserved as {backup} and reset to empty state\n"
-                )
-            except OSError:
-                pass
+                    preserved = True
+            except OSError as backup_exc:
+                # Couldn't move the file - still warn the user that the
+                # session is being reset, just note the preservation failed.
+                try:
+                    sys.stderr.write(
+                        f"warning: session file at {self._session_path} could not be "
+                        f"read ({exc}) and preservation failed ({backup_exc}); "
+                        f"resetting to empty state\n"
+                    )
+                except (OSError, ValueError):
+                    pass
+            else:
+                try:
+                    location = backup if preserved else self._session_path
+                    sys.stderr.write(
+                        f"warning: session file at {self._session_path} could not be read "
+                        f"({exc}); preserved as {location} and reset to empty state\n"
+                    )
+                except (OSError, ValueError):
+                    pass
             self._data = _empty_session_data()
 
     def save( self ) -> None:
