@@ -1033,7 +1033,7 @@
     {
       "name": "inkstitch",
       "display_name": "Ink/Stitch",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "description": "Machine-embroidery digitization — set stitch params, validate, preview, and export to DST/PES/JEF/VP3 via Ink/Stitch",
       "requires": "Ink/Stitch extension installed (https://inkstitch.org/docs/install/)",
       "homepage": "https://inkstitch.org",
