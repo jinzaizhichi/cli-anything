@@ -3,10 +3,122 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CLI-Anything Hub</title>
+  <title>CLI-Anything Hub - Agent-Friendly CLI Registry</title>
+  <meta name="description" content="CLI-Anything Hub is an agent-friendly registry and package manager for CLI tools that let AI agents discover, install, and operate GUI applications, developer tools, creative software, web APIs, and public SaaS platforms.">
+  <meta name="author" content="HKUDS and Yuhao Yang">
+  <meta name="copyright" content="Copyright: HKUDS. Lead author: Yuhao Yang (yuhao.page).">
+  <meta name="robots" content="index,follow,max-snippet:-1,max-image-preview:large,max-video-preview:-1">
+  <link rel="canonical" href="https://clianything.cc/">
+  <link rel="alternate" type="text/markdown" href="https://clianything.cc/index.md" title="CLI-Anything Hub Markdown">
+  <link rel="alternate" type="text/plain" href="https://clianything.cc/llms.txt" title="CLI-Anything LLM Context">
+  <link rel="alternate" type="text/plain" href="https://clianything.cc/llms-full.txt" title="CLI-Anything Full LLM Context">
+  <link rel="sitemap" type="application/xml" href="https://clianything.cc/sitemap.xml">
+  <link rel="service-desc" type="application/openapi+json" href="https://clianything.cc/openapi.json">
+  <link rel="agent" type="application/json" href="https://clianything.cc/.well-known/agent.json">
+  <link rel="agent-card" type="application/json" href="https://clianything.cc/.well-known/agent-card.json">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="CLI-Anything Hub">
+  <meta property="og:title" content="CLI-Anything Hub - Agent-Friendly CLI Registry">
+  <meta property="og:description" content="Discover, install, and launch agent-friendly CLI tools for GUI applications, developer tools, creative software, web APIs, and public SaaS platforms.">
+  <meta property="og:url" content="https://clianything.cc/">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="CLI-Anything Hub - Agent-Friendly CLI Registry">
+  <meta name="twitter:description" content="Agent-friendly CLI registry and package manager for discovering, installing, and launching command-line tools.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://clianything.cc/#organization",
+        "name": "HKUDS",
+        "url": "https://github.com/HKUDS",
+        "sameAs": [
+          "https://github.com/HKUDS/CLI-Anything",
+          "https://yuhao.page"
+        ]
+      },
+      {
+        "@type": "Person",
+        "@id": "https://yuhao.page/#person",
+        "name": "Yuhao Yang",
+        "url": "https://yuhao.page"
+      },
+      {
+        "@type": "SoftwareApplication",
+        "@id": "https://clianything.cc/#software",
+        "name": "CLI-Anything Hub",
+        "alternateName": [
+          "CLI-Hub",
+          "cli-hub",
+          "cli-anything-hub"
+        ],
+        "description": "Agent-friendly registry and package manager for CLI tools that let AI agents discover, install, and operate GUI applications, developer tools, creative software, web APIs, and public SaaS platforms.",
+        "url": "https://clianything.cc/",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "Linux, macOS, Windows",
+        "softwareVersion": "0.3.0",
+        "programmingLanguage": "Python",
+        "downloadUrl": "https://pypi.org/project/cli-anything-hub/",
+        "codeRepository": "https://github.com/HKUDS/CLI-Anything",
+        "license": "https://github.com/HKUDS/CLI-Anything/blob/main/LICENSE",
+        "isAccessibleForFree": true,
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD",
+          "url": "https://clianything.cc/pricing.md"
+        },
+        "creator": {
+          "@id": "https://yuhao.page/#person"
+        },
+        "publisher": {
+          "@id": "https://clianything.cc/#organization"
+        },
+        "copyrightHolder": {
+          "@id": "https://clianything.cc/#organization"
+        },
+        "copyrightNotice": "Copyright: HKUDS. Lead author: Yuhao Yang (yuhao.page).",
+        "sameAs": [
+          "https://github.com/HKUDS/CLI-Anything",
+          "https://pypi.org/project/cli-anything-hub/",
+          "https://clawhub.ai/yuh-yang/cli-anything-hub",
+          "https://www.skillhub.club/web/skills/itsyuhao-cli-anything-hub",
+          "https://skillhub.cn/skills/cli-hub-meta-skill"
+        ],
+        "potentialAction": [
+          {
+            "@type": "InstallAction",
+            "target": "pip install cli-anything-hub"
+          },
+          {
+            "@type": "SearchAction",
+            "target": "cli-hub search {query}",
+            "query-input": "required name=query"
+          }
+        ]
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://clianything.cc/#website",
+        "name": "CLI-Anything Hub",
+        "url": "https://clianything.cc/",
+        "description": "Agent-friendly CLI registry and package manager.",
+        "publisher": {
+          "@id": "https://clianything.cc/#organization"
+        },
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": "https://clianything.cc/?q={search_term_string}",
+          "query-input": "required name=search_term_string"
+        }
+      }
+    ]
+  }
+  </script>
   <style>
     :root {
       --bg: #09090b;

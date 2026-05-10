@@ -58,8 +58,10 @@ jobs:
             --acl public-read \
             --content-type text/markdown
 
-      - name: Copy registry.json to hub for cli-hub access
-        run: cp registry.json docs/hub/registry.json
+      - name: Copy registries to hub for cli-hub access
+        run: |
+          cp registry.json docs/hub/registry.json
+          cp public_registry.json docs/hub/public_registry.json
 
       - name: Build with Jekyll
         uses: actions/jekyll-build-pages@v1
