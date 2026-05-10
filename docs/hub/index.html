@@ -2002,6 +2002,7 @@
 
     const REPO = 'https://github.com/HKUDS/CLI-Anything';
     const GITHUB_REPO_API = 'https://api.github.com/repos/HKUDS/CLI-Anything';
+    const GITHUB_STARS_BADGE_API = 'https://img.shields.io/github/stars/HKUDS/CLI-Anything.json';
     const REPO_SKILLS_SOURCE = 'HKUDS/CLI-Anything';
     const REGISTRY_URLS = [
       '../../registry.json',
@@ -2052,8 +2053,34 @@
       }).format(value);
     }
 
+    function formatBadgeCount(value) {
+      if (typeof value !== 'string') return null;
+      const label = value.trim();
+      return label ? label.toUpperCase() : null;
+    }
+
+    function renderGitHubStars(label, title) {
+      document.querySelectorAll('[data-github-stars]').forEach(el => {
+        el.textContent = label;
+        el.setAttribute('aria-label', title);
+        el.title = title;
+      });
+    }
+
     async function loadGitHubStars() {
       try {
+        try {
+          const badgeResp = await fetch(GITHUB_STARS_BADGE_API);
+          if (badgeResp.ok) {
+            const badge = await badgeResp.json();
+            const badgeLabel = formatBadgeCount(badge.message || badge.value);
+            if (badgeLabel) {
+              renderGitHubStars(badgeLabel, `${badgeLabel} GitHub stars`);
+              return;
+            }
+          }
+        } catch (_) {}
+
         const resp = await fetch(GITHUB_REPO_API, {
           headers: { 'Accept': 'application/vnd.github+json' }
         });
@@ -2063,11 +2090,7 @@
         const stars = repo.stargazers_count;
         if (typeof stars !== 'number') return;
 
-        document.querySelectorAll('[data-github-stars]').forEach(el => {
-          el.textContent = formatCompactCount(stars);
-          el.setAttribute('aria-label', `${stars.toLocaleString('en-US')} GitHub stars`);
-          el.title = `${stars.toLocaleString('en-US')} GitHub stars`;
-        });
+        renderGitHubStars(formatCompactCount(stars), `${stars.toLocaleString('en-US')} GitHub stars`);
       } catch (_) {
         // Keep fallback placeholder when GitHub API is unavailable.
       }
